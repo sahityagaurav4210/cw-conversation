@@ -1,0 +1,8 @@
+{
+    "editor.fontFamily": "'Fira Code', Consolas, 'Courier New', monospace",
+    "editor.fontSize": 16,
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.wordWrapColumn": 150,
+    "editor.formatOnSave": true,
+    "prettier.semi": true,
+}
