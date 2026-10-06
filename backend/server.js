@@ -20,6 +20,8 @@ const {
 
 const bcrypt = require("bcryptjs");
 
+const logger = require("./utils/logger");
+
 const app = express();
 const server = http.createServer(app);
 
@@ -28,6 +30,22 @@ const fs = require("fs");
 
 app.use(cors({ origin: "*" }));
 app.use(express.json());
+
+// Winston HTTP Request Logging Middleware
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    logger.info(`HTTP ${req.method} ${req.originalUrl} ${res.statusCode} - ${duration}ms`, {
+      method: req.method,
+      url: req.originalUrl,
+      status: res.statusCode,
+      durationMs: duration,
+      ip: req.ip,
+    });
+  });
+  next();
+});
 
 // Ensure uploads directories exist
 const uploadDir = path.join(__dirname, "uploads");
@@ -68,7 +86,7 @@ io.on("connection", (socket) => {
   if (activeUserSockets.has(userId)) {
     const existingSocket = activeUserSockets.get(userId);
     if (existingSocket && existingSocket.id !== socket.id) {
-      console.log(
+      logger.info(
         `[Singleton Socket] Disconnecting existing socket (${existingSocket.id}) for user ${socket.user.username} (ID: ${userId})`,
       );
       existingSocket.emit("force_disconnect", {
@@ -90,7 +108,7 @@ io.on("connection", (socket) => {
   // Emit current list of online users to the newly connected user
   socket.emit("online_users", Array.from(onlineUsers.keys()));
 
-  console.log(`User connected: ${socket.user.username} (Socket ID: ${socket.id})`);
+  logger.info(`User connected via socket: ${socket.user.username} (Socket ID: ${socket.id})`);
 
   // Join a personal room for receiving incoming chat notifications
   socket.join(`user_${socket.user.id}`);
@@ -283,12 +301,57 @@ async function seedEmailClients() {
   }
 }
 
+async function seedCodingLanguages() {
+  try {
+    const { CodingLanguageMaster } = require("./models");
+    const count = await CodingLanguageMaster.count();
+    if (count === 0) {
+      const defaultLanguages = [
+        { name: "JavaScript", value: "javascript" },
+        { name: "TypeScript", value: "typescript" },
+        { name: "React (JSX / TSX)", value: "jsx" },
+        { name: "Next.js", value: "nextjs" },
+        { name: "NestJS", value: "nestjs" },
+        { name: "Spring Boot (Java)", value: "springboot" },
+        { name: "Java", value: "java" },
+        { name: "Python", value: "python" },
+        { name: "Node.js / Express", value: "nodejs" },
+        { name: "Vue.js", value: "vue" },
+        { name: "Angular", value: "angular" },
+        { name: "C++", value: "cpp" },
+        { name: "C# / .NET", value: "csharp" },
+        { name: "PHP / Laravel", value: "php" },
+        { name: "Go", value: "go" },
+        { name: "Rust", value: "rust" },
+        { name: "Kotlin", value: "kotlin" },
+        { name: "Swift", value: "swift" },
+        { name: "SQL", value: "sql" },
+        { name: "HTML", value: "html" },
+        { name: "CSS / SCSS", value: "css" },
+        { name: "JSON / YAML", value: "json" },
+        { name: "Docker / Bash", value: "bash" },
+      ];
+      for (const lang of defaultLanguages) {
+        await CodingLanguageMaster.create({
+          name: lang.name,
+          value: lang.value,
+          is_active: true,
+        });
+      }
+      console.log("Default coding languages seeded.");
+    }
+  } catch (err) {
+    console.error("Error seeding coding languages:", err);
+  }
+}
+
 const PORT = process.env.PORT || 5000;
 sequelize.sync({ alter: true }).then(async () => {
-  console.log("Database synced");
+  logger.info("Database synced via Sequelize");
   await seedAdminUser();
   await seedEmailClients();
+  await seedCodingLanguages();
   server.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on port ${PORT} (0.0.0.0)`);
+    logger.info(`Server running on port ${PORT} (0.0.0.0)`);
   });
 });

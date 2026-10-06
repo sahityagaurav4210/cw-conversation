@@ -1,0 +1,4 @@
+{"level":"info","message":"Database synced via Sequelize","timestamp":"2026-10-06 17:35:50"}
+{"level":"info","message":"Server running on port 5000 (0.0.0.0)","timestamp":"2026-10-06 17:35:50"}
+{"durationMs":137,"ip":"10.10.149.3","level":"info","message":"HTTP POST /api/auth/refresh 200 - 137ms","method":"POST","status":200,"timestamp":"2026-10-06 17:38:31","url":"/api/auth/refresh"}
+{"level":"info","message":"User connected via socket: sgaurav (Socket ID: MnsVwz9rRUTQtGqnAAAA)","timestamp":"2026-10-06 17:38:31"}

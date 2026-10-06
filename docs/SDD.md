@@ -118,7 +118,17 @@ The **Singleton Socket Architecture** ensures that a single user account (`e.g.,
 | `created_at` | TIMESTAMP | Not Null | Creation timestamp |
 | `updated_at` | TIMESTAMP | Not Null | Last update timestamp |
 
-#### 4.1.3 Conversations Schema (`conversations`)
+#### 4.1.3 Coding Language Master Schema (`coding_language_masters`)
+| Field Name | Type | Constraints | Description |
+| :--- | :--- | :--- | :--- |
+| `id` | INTEGER | PK, Auto Increment | Unique coding language ID |
+| `name` | VARCHAR(255) | Not Null | Display name (e.g. `JavaScript`) |
+| `value` | VARCHAR(255) | Unique, Not Null | Syntax identifier (e.g. `javascript`) |
+| `is_active` | BOOLEAN | Default `true` | Active status toggle |
+| `created_at` | TIMESTAMP | Not Null | Creation timestamp |
+| `updated_at` | TIMESTAMP | Not Null | Last update timestamp |
+
+#### 4.1.4 Conversations Schema (`conversations`)
 | Field Name | Type | Constraints | Description |
 | :--- | :--- | :--- | :--- |
 | `id` | INTEGER | PK, Auto Increment | Conversation ID |
@@ -178,6 +188,48 @@ sequenceDiagram
 
 ## 5. Requirements Traceability Matrix
 
+### 4.4 Container Orchestration & Persistent Volume Architecture
+The system utilizes **Docker Compose** (`docker-compose.yml`) for multi-container orchestration across 3 isolated services:
+1. **`postgres`**: PostgreSQL 15 Database container.
+2. **`backend`**: Node.js Express & Socket.IO server container with dependency on PostgreSQL health checks.
+3. **`frontend`**: Production multi-stage Nginx container serving compiled React SPA assets.
+
+```mermaid
+graph TD
+    subgraph Docker Compose Cluster
+        FrontendContainer[frontend: Nginx Container :5173]
+        BackendContainer[backend: Node.js Container :5000]
+        PostgresContainer[postgres: Postgres 15 Container :5432]
+    end
+
+    FrontendContainer -->|HTTP / REST| BackendContainer
+    BackendContainer -->|Sequelize ORM| PostgresContainer
+
+    PostgresContainer -->|Mount| VolDB[(postgres_data Volume)]
+    BackendContainer -->|Mount| VolUploads[(backend_uploads Volume)]
+    BackendContainer -->|Mount| VolLogs[(backend_logs Volume)]
+```
+
+#### Persistent Storage Volume Mapping
+- **`postgres_data`**: Mapped to `/var/lib/postgresql/data` for database persistence.
+- **`backend_uploads`**: Mapped to `/app/uploads` for encrypted attachment files and profile pictures.
+- **`backend_logs`**: Mapped to `/app/logs` for persistent storage of Winston log files.
+
+---
+
+### 4.5 Winston Logging Subsystem Specifications
+1. **Module Location**: `backend/utils/logger.js`.
+2. **Target File Path**: `backend/logs` directory.
+3. **Transports Configured**:
+   - `transports.Console`: Colorized timestamped logs for container stdout.
+   - `transports.File (combined.log)`: Complete JSON structured logs (Max Size: 10MB, Max Files: 10).
+   - `transports.File (error.log)`: Dedicated error logs with exception stack traces (Max Size: 5MB, Max Files: 5).
+4. **HTTP Interceptor**: Express middleware measuring request latency (`res.on('finish')`) and logging HTTP status, duration, and client IP.
+
+---
+
+## 5. Requirements Traceability Matrix
+
 | SRS Req ID | Feature Area | SDD Component / Module | Verification Method |
 | :--- | :--- | :--- | :--- |
 | **FR-1.1** | User Registration | `routes/auth.js` -> `/register` | Integration Test |
@@ -195,4 +247,7 @@ sequenceDiagram
 | **FR-4.1** | File Attachment | `routes/chat.js` -> `POST /files/:convId` | Integration Test |
 | **FR-6.1** | Admin Governance | `AdminPanel.jsx` / `auth.js` -> `/admin/users` | Role Authorization Test |
 | **FR-6.2** | Email Client Master | `SystemMasters.jsx`, `EmailClientMaster.jsx`, `AddEmailClientDialog.jsx` | Integration Test |
+| **FR-6.3** | Coding Languages Master | `SystemMasters.jsx`, `CodingLanguageMaster.jsx`, `AddCodingLanguageDialog.jsx`, `CodeSnippetModal.jsx` | Integration Test |
 | **FR-7.1** | Feedback Subsystem | `FeedbackDialog.jsx` / `routes/feedback.js` | Integration Test |
+| **FR-8.1** | Docker Orchestration | `docker-compose.yml`, `backend/Dockerfile`, `frontend/Dockerfile` | Containerization Test |
+| **FR-8.2** | Winston Logger | `backend/utils/logger.js` -> `backend/logs/combined.log`, `error.log` | Audit Log Validation |

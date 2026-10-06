@@ -5,6 +5,7 @@ const Message = require('./Message');
 const File = require('./File');
 const Feedback = require('./Feedback');
 const EmailClientMaster = require('./EmailClientMaster');
+const CodingLanguageMaster = require('./CodingLanguageMaster');
 
 // User <-> Conversation
 User.hasMany(Conversation, { foreignKey: 'user1_id', as: 'started_conversations' });
@@ -39,6 +40,7 @@ module.exports = {
     Message,
     File,
     Feedback,
-    EmailClientMaster
+    EmailClientMaster,
+    CodingLanguageMaster,
 };
 

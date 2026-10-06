@@ -20,7 +20,7 @@ This application was developed to facilitate communication among colleagues over
 - **Read Receipts & Status**: Real-time read status tracking (`Sent`, `Read`) and online/offline user indicators.
 - **Typing Indicators**: Live typing notifications when a conversation partner is drafting a message.
 - **URL Sharing (`UrlShareModal.jsx`)**: Dedicated plug-and-play modal for sharing web links and URLs adjacent to the code snippet button in `ChatInput.jsx`. Formats URLs into clickable links with optional descriptions.
-- **Code Snippet Sharing (`CodeSnippetModal.jsx`)**: Fenced markdown code block sharing supporting over 20+ programming languages/frameworks with syntax highlighting.
+- **Code Snippet Sharing (`CodeSnippetModal.jsx`)**: Markdown code block sharing featuring a dynamic MUI `Autocomplete` language selector powered by the Supported Coding Languages Master.
 - **Enhanced User Profiles**: Optional email address with split domain autocomplete, sex selection (`male`, `female`, `tgp`), and profile photo avatars with magic byte validation.
 - **Secure File Sharing**: Attachment support with encryption, size limits, and download status tracking.
 - **Collapsible Navigation**: Responsive sidebar with collapsible toggle, user avatars, and built-in search bar with query reset adornments.
@@ -29,8 +29,9 @@ This application was developed to facilitate communication among colleagues over
 
 - **Admin Dashboard**: Interactive management table for user accounts built using `material-react-table`.
 - **Account Control**: Ability to activate, deactivate, unlock, reset passwords, or delete user accounts.
-- **System Masters Tab**: Card-based interface in Admin Panel featuring **Email Client Master**.
-- **Email Client Master Layout**: Dedicated header control entity positioned above `material-react-table` (with Heading, Refresh button, and Add Email Client button), maintaining native Material React Table search and column toolbars.
+- **System Masters Tab**: Card-based interface in Admin Panel featuring **Email Client Master** and **Supported Coding Languages Master**.
+- **Email Client Master**: Manage allowed email client domain extensions (`material-react-table` + separate header entity).
+- **Supported Coding Languages Master**: Manage programming languages and syntax identifiers (`material-react-table` + separate header entity + `AddCodingLanguageDialog`).
 - **Feedback System**: Integrated feedback submission modal for users and a dedicated admin feedback management panel.
 
 ---
@@ -87,7 +88,47 @@ VITE_MAX_UPLOAD_SIZE_MB=350
 
 ---
 
-## 💻 Getting Started
+## 🐳 Docker Containerization & Deployment
+
+The application includes a complete containerization setup using **Docker Compose** (`docker-compose.yml`) located in the project root directory.
+
+### Services Defined:
+
+1. **`postgres`**: PostgreSQL 15 Database container with database initialization and health checks.
+2. **`backend`**: Node.js Express & Socket.IO server container with dependency on PostgreSQL health check.
+3. **`frontend`**: Production multi-stage Nginx container serving built React SPA assets on port `5173`.
+
+### Persistent Volumes Configured:
+
+- **`postgres_data`**: Persistent storage for PostgreSQL database data files (`/var/lib/postgresql/data`).
+- **`backend_uploads`**: Persistent storage for user encrypted file attachments and profile pictures (`/app/uploads`).
+- **`backend_logs`**: Persistent storage for Winston application logs (`/app/logs`).
+
+### Running with Docker Compose:
+
+```bash
+# Build and launch all services in detached mode
+docker-compose up -d --build
+
+# Inspect container status
+docker-compose ps
+
+# View live application logs
+docker-compose logs -f backend
+```
+
+---
+
+## 📝 Winston Logging Architecture
+
+The backend incorporates **Winston** structured logging. Log files are saved in the `backend/logs` location:
+
+- **`backend/logs/combined.log`**: Contains all system-wide informational, HTTP access, and error logs with ISO timestamps.
+- **`backend/logs/error.log`**: Dedicated error log storing exception stack traces and security validation errors.
+
+---
+
+## 💻 Local Development Setup
 
 ### Prerequisites
 

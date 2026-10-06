@@ -1,45 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   TextField,
   Box,
+  Autocomplete,
 } from "@mui/material";
 import CodeIcon from "@mui/icons-material/Code";
 import SendIcon from "@mui/icons-material/Send";
+import axios from "axios";
 import { useUI } from "../context/UIContext";
 
-const LANGUAGES = [
-  { label: "JavaScript", value: "javascript" },
-  { label: "TypeScript", value: "typescript" },
-  { label: "React (JSX / TSX)", value: "jsx" },
-  { label: "Next.js", value: "nextjs" },
-  { label: "NestJS", value: "nestjs" },
-  { label: "Spring Boot (Java)", value: "springboot" },
-  { label: "Java", value: "java" },
-  { label: "Python", value: "python" },
-  { label: "Node.js / Express", value: "nodejs" },
-  { label: "Vue.js", value: "vue" },
-  { label: "Angular", value: "angular" },
-  { label: "C++", value: "cpp" },
-  { label: "C# / .NET", value: "csharp" },
-  { label: "PHP / Laravel", value: "php" },
-  { label: "Go", value: "go" },
-  { label: "Rust", value: "rust" },
-  { label: "Kotlin", value: "kotlin" },
-  { label: "Swift", value: "swift" },
-  { label: "SQL", value: "sql" },
-  { label: "HTML", value: "html" },
-  { label: "CSS / SCSS", value: "css" },
-  { label: "JSON / YAML", value: "json" },
-  { label: "Docker / Bash", value: "bash" },
+const DEFAULT_LANGUAGES = [
+  { name: "JavaScript", value: "javascript" },
+  { name: "TypeScript", value: "typescript" },
+  { name: "React (JSX / TSX)", value: "jsx" },
+  { name: "Next.js", value: "nextjs" },
+  { name: "NestJS", value: "nestjs" },
+  { name: "Spring Boot (Java)", value: "springboot" },
+  { name: "Java", value: "java" },
+  { name: "Python", value: "python" },
+  { name: "Node.js / Express", value: "nodejs" },
+  { name: "Vue.js", value: "vue" },
+  { name: "Angular", value: "angular" },
+  { name: "C++", value: "cpp" },
+  { name: "C# / .NET", value: "csharp" },
+  { name: "PHP / Laravel", value: "php" },
+  { name: "Go", value: "go" },
+  { name: "Rust", value: "rust" },
+  { name: "Kotlin", value: "kotlin" },
+  { name: "Swift", value: "swift" },
+  { name: "SQL", value: "sql" },
+  { name: "HTML", value: "html" },
+  { name: "CSS / SCSS", value: "css" },
+  { name: "JSON / YAML", value: "json" },
+  { name: "Docker / Bash", value: "bash" },
 ];
 
 const countWords = (text) => {
@@ -49,13 +47,37 @@ const countWords = (text) => {
 
 const CodeSnippetModal = ({ open, onClose, onSendCode }) => {
   const { showAlert } = useUI();
-  const [language, setLanguage] = useState("javascript");
+  const [languagesList, setLanguagesList] = useState(DEFAULT_LANGUAGES);
+  const [selectedLanguage, setSelectedLanguage] = useState(DEFAULT_LANGUAGES[0]);
   const [code, setCode] = useState("");
   const [additionalText, setAdditionalText] = useState("");
 
+  const API_BASE =
+    import.meta.env.VITE_API_BASE_URI || "http://localhost:5000";
+
+  const fetchCodingLanguages = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/api/auth/coding-languages`);
+      if (Array.isArray(res.data) && res.data.length > 0) {
+        setLanguagesList(res.data);
+        if (!selectedLanguage) {
+          setSelectedLanguage(res.data[0]);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch coding languages:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (open) {
+      fetchCodingLanguages();
+    }
+  }, [open]);
+
   const wordCount = countWords(code);
   const isOverWordLimit = wordCount > 5000;
-  const messageRegex = /^[a-zA-Z0-9 .(),_\-#$/&%@*+'?]+$/;
+  const messageRegex = /^[a-zA-Z0-9 \t\r\n.(),_:\/\-#$/&%@*+'?!;=~\[\]{}<>"`|\\]+$/;
 
   const isAdditionalTextInvalid = additionalText.trim()
     ? !messageRegex.test(additionalText.trim())
@@ -78,10 +100,15 @@ const CodeSnippetModal = ({ open, onClose, onSendCode }) => {
       return;
     }
 
+    const langValue =
+      typeof selectedLanguage === "string"
+        ? selectedLanguage.toLowerCase()
+        : selectedLanguage?.value || "javascript";
+
     // Format as Markdown code block ```language\ncode\n``` and optional Additional Text
     const formattedCodeMessage = additionalText.trim()
-      ? `\`\`\`${language}\n${code.trim()}\n\`\`\`\n\n**Additional Text:**\n${additionalText.trim()}`
-      : `\`\`\`${language}\n${code.trim()}\n\`\`\``;
+      ? `\`\`\`${langValue}\n${code.trim()}\n\`\`\`\n\n**Additional Text:**\n${additionalText.trim()}`
+      : `\`\`\`${langValue}\n${code.trim()}\n\`\`\``;
 
     onSendCode(formattedCodeMessage);
 
@@ -105,24 +132,32 @@ const CodeSnippetModal = ({ open, onClose, onSendCode }) => {
       </DialogTitle>
       <DialogContent dividers>
         <Box display="flex" flexDirection="column" gap={2} pt={1}>
-          {/* 1. Language Select Dropdown */}
-          <FormControl fullWidth size="small">
-            <InputLabel id="language-select-label">
-              Programming Language / Framework
-            </InputLabel>
-            <Select
-              labelId="language-select-label"
-              value={language}
-              label="Programming Language / Framework"
-              onChange={(e) => setLanguage(e.target.value)}
-            >
-              {LANGUAGES.map((lang) => (
-                <MenuItem key={lang.value} value={lang.value}>
-                  {lang.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          {/* 1. MUI Autocomplete Dropdown for Coding Languages */}
+          <Autocomplete
+            options={languagesList}
+            getOptionLabel={(option) =>
+              typeof option === "string"
+                ? option
+                : option.name || option.value || ""
+            }
+            value={selectedLanguage}
+            onChange={(event, newValue) => {
+              setSelectedLanguage(newValue);
+            }}
+            isOptionEqualToValue={(option, value) => {
+              const valString =
+                typeof value === "string" ? value : value?.value;
+              return option.value === valString || option.name === valString;
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Programming Language / Framework"
+                placeholder="Search programming language..."
+                size="small"
+              />
+            )}
+          />
 
           {/* 2. MUI Multiline Textbox for Code */}
           <TextField

@@ -1,0 +1,75 @@
+version: "3.8"
+
+services:
+  # 1. PostgreSQL Database Service
+  postgres:
+    image: postgres:15-alpine
+    container_name: chat_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME:-chatdb}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASS:-postgres123}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. Node.js Express + Socket.IO Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: chat_backend
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: 5000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-chatdb}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASS: ${DB_PASS:-postgres123}
+      JWT_SECRET: ${JWT_SECRET:-conversation_jwt_super_secret_key_2026}
+      SERVER_MASTER_KEY: ${SERVER_MASTER_KEY:-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855}
+      MAX_UPLOAD_SIZE_MB: 350
+      MAX_WRONG_PWD_LIMIT: 5
+      INIT_ADMIN_USER: ${INIT_ADMIN_USER:-admin}
+      INIT_ADMIN_PASS: ${INIT_ADMIN_PASS:-admin123}
+      CAPTCHA_SERVICE_URL: ${CAPTCHA_SERVICE_URL:-http://localhost:11905}
+    ports:
+      - "5000:5000"
+    volumes:
+      - backend_uploads:/app/uploads
+      - backend_logs:/app/logs
+
+  # 3. React SPA Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URI: http://localhost:5000
+        VITE_CAPTCHA_SERVICE_URL: http://localhost:11905
+    container_name: chat_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+# Persistent Volumes (Separate storage for PostgreSQL data, Backend uploads, and Winston logs)
+volumes:
+  postgres_data:
+    driver: local
+  backend_uploads:
+    driver: local
+  backend_logs:
+    driver: local

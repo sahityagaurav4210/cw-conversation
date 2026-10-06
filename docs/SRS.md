@@ -141,7 +141,10 @@ No dedicated hardware interfaces required. Standard network interfaces supportin
 | **FR-5.1** | Read Status | System shall mark messages as read when recipient focuses active conversation. | Medium |
 | **FR-6.1** | Admin Governance | Admin shall view, lock, unlock, activate, reset password, or delete user accounts. | High |
 | **FR-6.2** | Email Client Master | System Masters tab shall display Email Client Master with header controls (Title, Refresh button, Add Email Client button) placed as a separate entity above `material-react-table`, keeping default MRT toolbar functionality. | High |
+| **FR-6.3** | Coding Languages Master | System Masters tab shall display Supported Coding Languages Master (`material-react-table` + separate header + `AddCodingLanguageDialog`). `CodeSnippetModal.jsx` shall dynamically fetch active languages and render an MUI `Autocomplete` selector. | High |
 | **FR-7.1** | Feedback Subsystem | User shall submit feedback with section category (`accounts`, `login`, `chats`) and RFC email. | Medium |
+| **FR-8.1** | Docker Orchestration | System shall provide a `docker-compose.yml` file orchestration featuring frontend, backend, and PostgreSQL database services, with separate persistent volumes (`postgres_data`, `backend_uploads`, `backend_logs`). | High |
+| **FR-8.2** | Winston Logger | Backend shall implement Winston structured logging storing JSON and formatted logs under `backend/logs` (`combined.log`, `error.log`). | High |
 
 ---
 

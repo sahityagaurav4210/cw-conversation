@@ -6,7 +6,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { Op } = require('sequelize');
-const { User, Conversation, EmailClientMaster, sequelize } = require('../models');
+const { User, Conversation, EmailClientMaster, CodingLanguageMaster, sequelize } = require('../models');
 
 const router = express.Router();
 
@@ -678,6 +678,81 @@ router.put("/admin/email-clients/:id/status", adminMiddleware, async (req, res) 
   } catch (err) {
     console.error("Error updating email client status:", err);
     res.status(500).json({ error: "Failed to update email client status" });
+  }
+});
+
+// ==================== CODING LANGUAGE MASTER ENDPOINTS ====================
+
+// Get active coding languages for CodeSnippetModal autocomplete dropdown
+router.get("/coding-languages", authMiddleware, async (req, res) => {
+  try {
+    const languages = await CodingLanguageMaster.findAll({
+      where: { is_active: true },
+      order: [["name", "ASC"]],
+    });
+    res.json(languages);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch coding languages" });
+  }
+});
+
+// Admin: Get all coding languages for Admin Panel Table
+router.get("/admin/coding-languages", adminMiddleware, async (req, res) => {
+  try {
+    const languages = await CodingLanguageMaster.findAll({
+      order: [["created_at", "DESC"]],
+    });
+    res.json(languages);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch coding languages" });
+  }
+});
+
+// Admin: Add new coding language
+router.post("/admin/coding-languages", adminMiddleware, async (req, res) => {
+  try {
+    const { name, value } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: "Language name is required." });
+    }
+    const cleanName = name.trim();
+    let cleanValue = value && value.trim() ? value.trim().toLowerCase() : cleanName.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    const existing = await CodingLanguageMaster.findOne({
+      where: {
+        [Op.or]: [{ name: cleanName }, { value: cleanValue }],
+      },
+    });
+    if (existing) {
+      return res.status(400).json({ error: "Coding language name or identifier value already exists." });
+    }
+
+    const newLang = await CodingLanguageMaster.create({
+      name: cleanName,
+      value: cleanValue,
+      is_active: true,
+    });
+    res.status(201).json(newLang);
+  } catch (err) {
+    console.error("Error creating coding language:", err);
+    res.status(500).json({ error: "Failed to add coding language" });
+  }
+});
+
+// Admin: Toggle coding language active status
+router.put("/admin/coding-languages/:id/status", adminMiddleware, async (req, res) => {
+  try {
+    const lang = await CodingLanguageMaster.findByPk(req.params.id);
+    if (!lang) return res.status(404).json({ error: "Coding language not found." });
+
+    lang.is_active = !lang.is_active;
+    await lang.save();
+    res.json({ message: "Coding language status updated successfully.", lang });
+  } catch (err) {
+    console.error("Error updating coding language status:", err);
+    res.status(500).json({ error: "Failed to update coding language status" });
   }
 });
 
