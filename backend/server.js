@@ -23,8 +23,20 @@ const bcrypt = require("bcryptjs");
 const app = express();
 const server = http.createServer(app);
 
+const path = require("path");
+const fs = require("fs");
+
 app.use(cors({ origin: "*" }));
 app.use(express.json());
+
+// Ensure uploads directories exist
+const uploadDir = path.join(__dirname, "uploads");
+const profileUploadDir = path.join(__dirname, "uploads", "profiles");
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+if (!fs.existsSync(profileUploadDir))
+  fs.mkdirSync(profileUploadDir, { recursive: true });
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/chat", chatRoutes);
@@ -36,6 +48,7 @@ const io = new Server(server, {
 app.set("io", io);
 
 const onlineUsers = new Map();
+const activeUserSockets = new Map();
 
 // Authentication Middleware for Socket.io
 io.use((socket, next) => {
@@ -50,16 +63,34 @@ io.use((socket, next) => {
 
 io.on("connection", (socket) => {
   const userId = socket.user.id;
-  const currentCount = onlineUsers.get(userId) || 0;
-  onlineUsers.set(userId, currentCount + 1);
-  if (currentCount === 0) {
+
+  // Singleton Enforcement: Disconnect any pre-existing connection for this user first
+  if (activeUserSockets.has(userId)) {
+    const existingSocket = activeUserSockets.get(userId);
+    if (existingSocket && existingSocket.id !== socket.id) {
+      console.log(
+        `[Singleton Socket] Disconnecting existing socket (${existingSocket.id}) for user ${socket.user.username} (ID: ${userId})`,
+      );
+      existingSocket.emit("force_disconnect", {
+        reason: `New connection established for user ${socket.user.username}`,
+      });
+      existingSocket.disconnect(true);
+    }
+  }
+
+  // Register current socket as the single active connection for this user
+  activeUserSockets.set(userId, socket);
+  const wasOnline = onlineUsers.has(userId);
+  onlineUsers.set(userId, 1);
+
+  if (!wasOnline) {
     io.emit("user_online", { userId });
   }
 
   // Emit current list of online users to the newly connected user
   socket.emit("online_users", Array.from(onlineUsers.keys()));
 
-  console.log(`User connected: ${socket.user.username}`);
+  console.log(`User connected: ${socket.user.username} (Socket ID: ${socket.id})`);
 
   // Join a personal room for receiving incoming chat notifications
   socket.join(`user_${socket.user.id}`);
@@ -140,7 +171,7 @@ io.on("connection", (socket) => {
     if (!trimmedContent || trimmedContent.length > 50000) return;
 
     const isCodeBlock = trimmedContent.startsWith("```");
-    const messageRegex = /^[a-zA-Z0-9 .(),_\-#$/&%@*+'?]+$/;
+    const messageRegex = /^[a-zA-Z0-9 \t\r\n.(),_:\/\-#$/&%@*+'?!;=~\[\]{}<>"`|\\]+$/;
 
     if (!isCodeBlock && !messageRegex.test(trimmedContent)) return;
 
@@ -188,15 +219,16 @@ io.on("connection", (socket) => {
     io.to(`user_${receiverId}`).emit("incoming_message", messagePayload);
   });
 
-  socket.on("disconnect", () => {
-    const count = onlineUsers.get(userId) || 0;
-    if (count <= 1) {
+  socket.on("disconnect", (reason) => {
+    // Only cleanup if this disconnected socket is the currently registered active socket for the user
+    if (activeUserSockets.get(userId)?.id === socket.id) {
+      activeUserSockets.delete(userId);
       onlineUsers.delete(userId);
       io.emit("user_offline", { userId });
+      console.log(`User disconnected: ${socket.user.username} (${reason})`);
     } else {
-      onlineUsers.set(userId, count - 1);
+      console.log(`Stale socket disconnected for user: ${socket.user.username} (${reason})`);
     }
-    console.log(`User disconnected: ${socket.user.username}`);
   });
 });
 
@@ -229,11 +261,34 @@ async function seedAdminUser() {
   }
 }
 
+async function seedEmailClients() {
+  try {
+    const { EmailClientMaster } = require("./models");
+    const count = await EmailClientMaster.count();
+    if (count === 0) {
+      const defaultDomains = [
+        "gmail.com",
+        "yahoo.com",
+        "outlook.com",
+        "hotmail.com",
+        "icloud.com",
+      ];
+      for (const domain of defaultDomains) {
+        await EmailClientMaster.create({ domain, is_active: true });
+      }
+      console.log("Default email client domains seeded.");
+    }
+  } catch (err) {
+    console.error("Error seeding email clients:", err);
+  }
+}
+
 const PORT = process.env.PORT || 5000;
 sequelize.sync({ alter: true }).then(async () => {
   console.log("Database synced");
   await seedAdminUser();
-  server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  await seedEmailClients();
+  server.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on port ${PORT} (0.0.0.0)`);
   });
 });

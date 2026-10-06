@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from "react";
 import axios from "axios";
+import socketService from "../services/socketService";
 
 export const AuthContext = createContext();
 
@@ -9,10 +10,18 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (token) {
-      // Very simple token validation: decoding payload (not verifying signature on client)
+      // Decode JWT token payload
       try {
         const payload = JSON.parse(atob(token.split(".")[1]));
-        setUser({ id: payload.id, username: payload.username, name: payload.name, role: payload.role || 'user' });
+        setUser({
+          id: payload.id,
+          username: payload.username,
+          name: payload.name,
+          email: payload.email,
+          profile_photo: payload.profile_photo,
+          sex: payload.sex,
+          role: payload.role || 'user'
+        });
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       } catch (e) {
         logout();
@@ -70,11 +79,13 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const login = async (username, password, isAdminLogin = false) => {
+  const login = async (username, password, isAdminLogin = false, captcha = "", captchaId = "") => {
     const res = await axios.post(`${API_BASE}/api/auth/login`, {
       username,
       password,
       isAdminLogin,
+      captcha,
+      captchaId,
     });
     setToken(res.data.token);
     localStorage.setItem("token", res.data.token);
@@ -82,23 +93,28 @@ export const AuthProvider = ({ children }) => {
     axios.defaults.headers.common["Authorization"] = `Bearer ${res.data.token}`;
   };
 
-  const register = async (username, password, name) => {
+  const register = async (username, password, name, captcha = "", captchaId = "") => {
     await axios.post(`${API_BASE}/api/auth/register`, {
       username,
       password,
       name,
+      captcha,
+      captchaId,
     });
   };
 
-  const updateProfile = async (name, password) => {
-    const res = await axios.put(`${API_BASE}/api/auth/profile`, {
-      name,
-      password,
-    });
+  const updateProfile = async (payload) => {
+    let data = payload;
+    let config = {};
+    if (payload instanceof FormData) {
+      config = { headers: { "Content-Type": "multipart/form-data" } };
+    }
+    const res = await axios.put(`${API_BASE}/api/auth/profile`, data, config);
     setToken(res.data.token);
     localStorage.setItem("token", res.data.token);
     setUser(res.data.user);
     axios.defaults.headers.common["Authorization"] = `Bearer ${res.data.token}`;
+    return res.data;
   };
 
   const refreshToken = async () => {
@@ -111,6 +127,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    socketService.disconnect();
     setToken(null);
     setUser(null);
     localStorage.removeItem("token");

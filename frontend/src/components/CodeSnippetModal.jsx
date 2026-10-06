@@ -11,7 +11,6 @@ import {
   MenuItem,
   TextField,
   Box,
-  Typography,
 } from "@mui/material";
 import CodeIcon from "@mui/icons-material/Code";
 import SendIcon from "@mui/icons-material/Send";
@@ -188,4 +187,4 @@ const CodeSnippetModal = ({ open, onClose, onSendCode }) => {
   );
 };
 
-export default CodeSnippetModal;
+export default React.memo(CodeSnippetModal);

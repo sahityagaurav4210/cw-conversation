@@ -18,6 +18,18 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    profile_photo: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    sex: {
+      type: DataTypes.ENUM("male", "female", "tgp"),
+      allowNull: true,
+    },
     password_hash: {
       type: DataTypes.STRING,
       allowNull: false,

@@ -162,7 +162,7 @@ router.post(
             .status(400)
             .json({ error: "Caption cannot exceed 2048 characters." });
         }
-        const messageRegex = /^[a-zA-Z0-9 .(),_\-#$/&%@*+']+$/;
+        const messageRegex = /^[a-zA-Z0-9 \t\r\n.(),_:\/\-#$/&%@*+'?!;=~\[\]{}<>"`|\\]+$/;
         if (!messageRegex.test(trimmedCaption)) {
           return res
             .status(400)

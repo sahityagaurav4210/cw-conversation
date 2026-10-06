@@ -32,7 +32,9 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import axios from "axios";
 import FeedbackManagement from "./FeedbackManagement";
+import SystemMasters from "./SystemMasters";
 import SessionTimerTypography from "./SessionTimerTypography";
+import NavbarLogo from "./NavbarLogo";
 
 const AdminPanel = () => {
   const { logout } = useContext(AuthContext);
@@ -383,44 +385,64 @@ const AdminPanel = () => {
       <Box
         display="flex"
         flexDirection="column"
-        sx={{ minHeight: "100%", bgcolor: "background.default", p: 3, pb: 5, mb: 4 }}
+        sx={{
+          minHeight: "100%",
+          bgcolor: "background.default",
+          p: 3,
+          pb: 5,
+          mb: 4,
+        }}
       >
+        {/* Paper 1: Title & Logo */}
         <Paper
           elevation={3}
           sx={{
             p: 2,
-            mb: 3,
+            mb: 2,
             display: "flex",
-            justifyContent: "space-between",
             alignItems: "center",
+            gap: 2,
           }}
         >
+          <NavbarLogo src="/logo.png" height={96} />
           <Typography variant="h5" color="primary" fontWeight="bold">
-            Simple Chat Admin Panel
+            Conversation Admin Panel
           </Typography>
-          <Box display="flex" alignItems="center" gap={1.5}>
-            <SessionTimerTypography sx={{ mr: 1 }} />
-            <Button
-              startIcon={<RefreshIcon />}
-              variant="outlined"
-              onClick={fetchAdminUsers}
-            >
-              Refresh
-            </Button>
-            <Button
-              startIcon={<LogoutIcon />}
-              variant="contained"
-              color="error"
-              onClick={() =>
-                showConfirm(
-                  "Are you sure you want to logout from Admin panel?",
-                  logout,
-                )
-              }
-            >
-              Logout
-            </Button>
-          </Box>
+        </Paper>
+
+        {/* Paper 2: Action Controls (Timer, Refresh, Logout) */}
+        <Paper
+          elevation={3}
+          sx={{
+            p: 1.5,
+            mb: 3,
+            display: "flex",
+            justifyContent: "flex-end",
+            alignItems: "center",
+            gap: 1.5,
+          }}
+        >
+          <SessionTimerTypography sx={{ mr: 1 }} />
+          <Button
+            startIcon={<RefreshIcon />}
+            variant="outlined"
+            onClick={fetchAdminUsers}
+          >
+            Refresh
+          </Button>
+          <Button
+            startIcon={<LogoutIcon />}
+            variant="contained"
+            color="error"
+            onClick={() =>
+              showConfirm(
+                "Are you sure you want to logout from Admin panel?",
+                logout,
+              )
+            }
+          >
+            Logout
+          </Button>
         </Paper>
 
         <Paper elevation={3} sx={{ p: 2, mb: 4 }}>
@@ -434,6 +456,7 @@ const AdminPanel = () => {
             <Tab label="User Management" />
             <Tab label="Forgot Password Requests" />
             <Tab label="Feedback Management" />
+            <Tab label="System Masters" />
           </Tabs>
 
           <Box sx={{ width: "100%", mb: 1 }}>
@@ -444,6 +467,8 @@ const AdminPanel = () => {
             )}
 
             {tabIndex === 2 && <FeedbackManagement />}
+
+            {tabIndex === 3 && <SystemMasters />}
           </Box>
         </Paper>
 

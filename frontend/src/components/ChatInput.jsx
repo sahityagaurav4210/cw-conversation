@@ -10,7 +10,9 @@ import SendIcon from "@mui/icons-material/Send";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import SyncIcon from "@mui/icons-material/Sync";
 import CodeIcon from "@mui/icons-material/Code";
+import LinkIcon from "@mui/icons-material/Link";
 import CodeSnippetModal from "./CodeSnippetModal";
+import UrlShareModal from "./UrlShareModal";
 
 const ChatInput = ({
   activeConversationId,
@@ -23,6 +25,7 @@ const ChatInput = ({
   const [message, setMessage] = useState("");
   const [isSyncing, setIsSyncing] = useState(false);
   const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
+  const [isUrlModalOpen, setIsUrlModalOpen] = useState(false);
   const fileInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
@@ -139,9 +142,23 @@ const ChatInput = ({
               color="primary"
               onClick={() => setIsCodeModalOpen(true)}
               disabled={!activeConversationId}
-              sx={{ mr: 1 }}
+              sx={{ mr: 0.5 }}
             >
               <CodeIcon />
+            </IconButton>
+          </span>
+        </Tooltip>
+
+        {/* URL Sharing button adjacent to code snippet button */}
+        <Tooltip title="Share web link / URL">
+          <span>
+            <IconButton
+              color="primary"
+              onClick={() => setIsUrlModalOpen(true)}
+              disabled={!activeConversationId}
+              sx={{ mr: 1 }}
+            >
+              <LinkIcon />
             </IconButton>
           </span>
         </Tooltip>
@@ -176,6 +193,13 @@ const ChatInput = ({
         open={isCodeModalOpen}
         onClose={() => setIsCodeModalOpen(false)}
         onSendCode={onSendMessage}
+      />
+
+      {/* URL Sharing Modal */}
+      <UrlShareModal
+        open={isUrlModalOpen}
+        onClose={() => setIsUrlModalOpen(false)}
+        onSendUrl={onSendMessage}
       />
     </>
   );

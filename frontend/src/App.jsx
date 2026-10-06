@@ -3,32 +3,12 @@ import { AuthContext, AuthProvider } from "./context/AuthContext";
 import Login from "./components/Login";
 import Chat from "./components/Chat";
 import { UIProvider } from "./context/UIContext";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 
 import AdminPanel from "./components/AdminPanel";
 import ForgotPassword from "./components/ForgotPassword";
 import SessionTimeoutModal from "./components/SessionTimeoutModal";
-
-const Footer = () => (
-  <Box 
-    component="footer" 
-    sx={{ 
-      p: 2, 
-      textAlign: 'center', 
-      bgcolor: 'background.paper', 
-      borderTop: '1px solid', 
-      borderColor: 'divider',
-      zIndex: 10
-    }}
-  >
-    <Typography variant="body2" color="text.secondary">
-      Copyright &copy; 2026 || All rights are reserved
-    </Typography>
-    <Typography variant="body2" color="text.secondary">
-      Design, developed, and maintained by Gaurav Sahitya
-    </Typography>
-  </Box>
-);
+import Footer from "./components/Footer";
 
 const MainApp = () => {
   const { user } = useContext(AuthContext);

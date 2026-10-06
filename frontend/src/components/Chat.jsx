@@ -18,6 +18,8 @@ import {
   Menu,
   MenuItem,
   Chip,
+  Avatar,
+  Tooltip,
 } from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -26,6 +28,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import LogoutIcon from "@mui/icons-material/Logout";
 import DoneIcon from "@mui/icons-material/Done";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
+import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import axios from "axios";
 import { io } from "socket.io-client";
 import { AuthContext } from "../context/AuthContext";
@@ -34,10 +37,13 @@ import ChatInput from "./ChatInput";
 import UserProfile from "./UserProfile";
 import FeedbackDialog from "./FeedbackDialog";
 import SessionTimerTypography from "./SessionTimerTypography";
+import NavbarLogo from "./NavbarLogo";
+import SearchBar from "./SearchBar";
+import socketService from "../services/socketService";
 import FormattedMessage from "./FormattedMessage";
 
 const Chat = () => {
-  const { user, token, logout, updateProfile } = useContext(AuthContext);
+  const { user, token, logout } = useContext(AuthContext);
   const { showAlert, showConfirm } = useUI();
   const [users, setUsers] = useState([]);
   const [activeUser, setActiveUser] = useState(null);
@@ -63,6 +69,7 @@ const Chat = () => {
   const [fileCaption, setFileCaption] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState(null);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const messagesEndRef = useRef(null);
   const activeConversationIdRef = useRef(null);
   const messagesRef = useRef([]);
@@ -88,11 +95,11 @@ const Chat = () => {
 
   const API_BASE = import.meta.env.VITE_API_BASE_URI || "http://localhost:5000";
 
-  // Initialize Socket
+  // Initialize Singleton Socket
   useEffect(() => {
-    const newSocket = io(API_BASE, {
-      auth: { token },
-    });
+    if (!token) return;
+    const newSocket = socketService.connect(token);
+    if (!newSocket) return;
 
     newSocket.on("connect", () => console.log("Connected to chat server"));
 
@@ -200,7 +207,7 @@ const Chat = () => {
     });
 
     setSocket(newSocket);
-    return () => newSocket.disconnect();
+    return () => socketService.disconnect();
   }, [token]);
 
   // Fetch users for sidebar
@@ -305,7 +312,7 @@ const Chat = () => {
     }
 
     const isCodeBlock = text.trim().startsWith("```");
-    const messageRegex = /^[a-zA-Z0-9 .(),_\-#$/&%@*+'?]+$/;
+    const messageRegex = /^[a-zA-Z0-9 \t\r\n.(),_:\/\-#$/&%@*+'?!;=~\[\]{}<>"`|\\]+$/;
 
     if (!isCodeBlock && !messageRegex.test(text.trim())) {
       showAlert("Message contains invalid characters.", "error");
@@ -358,7 +365,7 @@ const Chat = () => {
           try {
             localStorage.setItem(
               "downloaded_file_ids",
-              JSON.stringify(Array.from(updated))
+              JSON.stringify(Array.from(updated)),
             );
           } catch (e) {}
           return updated;
@@ -449,93 +456,175 @@ const Chat = () => {
     <Box display="flex" height="100%" width="100%" sx={{ overflow: "hidden" }}>
       {/* Sidebar */}
       <Box
-        width={300}
+        width={isSidebarCollapsed ? 64 : 300}
         bgcolor="background.default"
         borderRight="1px solid"
         borderColor="divider"
         display="flex"
         flexDirection="column"
         height="100%"
-        sx={{ overflow: "hidden" }}
+        sx={{
+          width: isSidebarCollapsed ? 64 : 300,
+          transition: "width 0.2s ease-in-out",
+          overflow: "hidden",
+        }}
       >
-        <Box
-          p={2}
-          bgcolor="background.paper"
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
+        {isSidebarCollapsed ? (
+          <Box
+            p={1.5}
+            bgcolor="background.paper"
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+          >
+            <Tooltip title="Expand Sidebar">
+              <IconButton
+                onClick={() => setIsSidebarCollapsed(false)}
+                sx={{ p: 0.5 }}
+              >
+                <NavbarLogo src="/logo.png" height={75} />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        ) : (
+          <Box
+            p={2}
+            bgcolor="background.paper"
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Box display="flex" alignItems="center" gap={1}>
+              <IconButton
+                size="small"
+                onClick={() => setIsSidebarCollapsed(true)}
+                title="Collapse Sidebar"
+                color="primary"
+              >
+                <MenuOpenIcon fontSize="small" />
+              </IconButton>
+              <Typography variant="h6" color="text.primary">
+                Chats
+              </Typography>
+            </Box>
+          </Box>
+        )}
+
+        {!isSidebarCollapsed && (
+          <>
+            <SearchBar
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              onSearch={fetchUsers}
+            />
+            <Divider />
+            <Box px={2} pt={2} pb={0}>
+              <Typography
+                variant="subtitle2"
+                color="text.secondary"
+                fontWeight="bold"
+                textTransform="uppercase"
+                letterSpacing={1}
+              >
+                Users
+              </Typography>
+            </Box>
+          </>
+        )}
+
+        <List
+          sx={{ overflowY: "auto", flex: 1, px: isSidebarCollapsed ? 0.5 : 0 }}
         >
-          <Typography variant="h6" color="text.primary">
-            Chats
-          </Typography>
-        </Box>
-        <Box p={2} bgcolor="background.default" display="flex" gap={1}>
-          <TextField
-            fullWidth
-            size="small"
-            placeholder="Search users..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && fetchUsers(searchQuery)}
-            sx={{
-              backgroundColor: "background.paper",
-              borderRadius: "8px",
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": { border: "none" },
-              },
-            }}
-          />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => fetchUsers(searchQuery)}
-            startIcon={<SearchIcon />}
-          >
-            Search
-          </Button>
-        </Box>
-        <Divider />
-        <Box px={2} pt={2} pb={0}>
-          <Typography
-            variant="subtitle2"
-            color="text.secondary"
-            fontWeight="bold"
-            textTransform="uppercase"
-            letterSpacing={1}
-          >
-            Users
-          </Typography>
-        </Box>
-        <List sx={{ overflowY: "auto", flex: 1 }}>
-          {users.map((u) => (
-            <ListItem
-              button
-              key={u.id}
-              onClick={() => handleSelectUser(u)}
-              sx={{
-                bgcolor:
-                  activeUser?.id === u.id ? "action.selected" : "transparent",
-                "&:hover": { bgcolor: "action.hover" },
-              }}
-            >
-              <ListItemText
-                primary={u.name ? `${u.name} (@${u.username})` : u.username}
-                primaryTypographyProps={{ color: "text.primary" }}
-              />
-              {onlineUsers.has(u.id) && (
-                <Box
-                  sx={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: "50%",
-                    bgcolor: "success.main",
-                    ml: 1,
-                  }}
-                  title="Online"
+          {users.map((u) => {
+            const displayName = u.name
+              ? `${u.name} (@${u.username})`
+              : u.username;
+            const initial = (u.name || u.username || "U")
+              .charAt(0)
+              .toUpperCase();
+
+            if (isSidebarCollapsed) {
+              return (
+                <Tooltip key={u.id} title={displayName} placement="right">
+                  <ListItem
+                    button
+                    onClick={() => handleSelectUser(u)}
+                    sx={{
+                      justifyContent: "center",
+                      px: 1,
+                      py: 1.5,
+                      bgcolor:
+                        activeUser?.id === u.id
+                          ? "action.selected"
+                          : "transparent",
+                      "&:hover": { bgcolor: "action.hover" },
+                    }}
+                  >
+                    <Box position="relative" display="inline-flex">
+                      <Avatar
+                        sx={{
+                          width: 36,
+                          height: 36,
+                          bgcolor:
+                            activeUser?.id === u.id
+                              ? "primary.main"
+                              : "secondary.main",
+                          fontSize: 16,
+                        }}
+                      >
+                        {initial}
+                      </Avatar>
+                      {onlineUsers.has(u.id) && (
+                        <Box
+                          sx={{
+                            width: 10,
+                            height: 10,
+                            borderRadius: "50%",
+                            bgcolor: "success.main",
+                            border: "2px solid",
+                            borderColor: "background.paper",
+                            position: "absolute",
+                            bottom: 0,
+                            right: 0,
+                          }}
+                        />
+                      )}
+                    </Box>
+                  </ListItem>
+                </Tooltip>
+              );
+            }
+
+            return (
+              <ListItem
+                button
+                key={u.id}
+                onClick={() => handleSelectUser(u)}
+                sx={{
+                  bgcolor:
+                    activeUser?.id === u.id ? "action.selected" : "transparent",
+                  "&:hover": { bgcolor: "action.hover" },
+                }}
+              >
+                <ListItemText
+                  primary={displayName}
+                  primaryTypographyProps={{ color: "text.primary" }}
                 />
-              )}
-            </ListItem>
-          ))}
+                {onlineUsers.has(u.id) && (
+                  <Box
+                    sx={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: "50%",
+                      bgcolor: "success.main",
+                      ml: 1,
+                    }}
+                    title="Online"
+                  />
+                )}
+              </ListItem>
+            );
+          })}
         </List>
       </Box>
 
@@ -579,7 +668,7 @@ const Chat = () => {
                 ? activeUser.name
                   ? `${activeUser.name} (@${activeUser.username})`
                   : activeUser.username
-                : "Simple Chat"}
+                : "Conversation"}
             </Typography>
             {activeUser && (
               <Typography
@@ -679,17 +768,36 @@ const Chat = () => {
                       }}
                     >
                       {msg.type === "file" ? (
-                        <Box display="flex" flexDirection="column" gap={1} minWidth={260}>
-                          <Box display="flex" justifyContent="space-between" alignItems="flex-start" gap={2}>
-                            <Box display="flex" flexDirection="column" gap={0.5}>
-                              <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
+                        <Box
+                          display="flex"
+                          flexDirection="column"
+                          gap={1}
+                          minWidth={260}
+                        >
+                          <Box
+                            display="flex"
+                            justifyContent="space-between"
+                            alignItems="flex-start"
+                            gap={2}
+                          >
+                            <Box
+                              display="flex"
+                              flexDirection="column"
+                              gap={0.5}
+                            >
+                              <Typography
+                                variant="body2"
+                                sx={{ wordBreak: "break-all" }}
+                              >
                                 <strong>file name:</strong> {msg.original_name}
                               </Typography>
                               <Typography variant="body2">
-                                <strong>file type:</strong> {msg.mime_type || "Unknown"}
+                                <strong>file type:</strong>{" "}
+                                {msg.mime_type || "Unknown"}
                               </Typography>
                               <Typography variant="body2">
-                                <strong>file size:</strong> {msg.size ? formatBytes(msg.size) : "0 Bytes"}
+                                <strong>file size:</strong>{" "}
+                                {msg.size ? formatBytes(msg.size) : "0 Bytes"}
                               </Typography>
                             </Box>
                             <Box
@@ -700,10 +808,18 @@ const Chat = () => {
                               gap={1}
                               sx={{ minWidth: "fit-content" }}
                             >
-                              <Box height={24} display="flex" alignItems="center">
+                              <Box
+                                height={24}
+                                display="flex"
+                                alignItems="center"
+                              >
                                 {downloadedFileIds.has(msg.id) && (
                                   <Chip
-                                    icon={<CheckCircleIcon style={{ fontSize: 14 }} />}
+                                    icon={
+                                      <CheckCircleIcon
+                                        style={{ fontSize: 14 }}
+                                      />
+                                    }
                                     label="Downloaded"
                                     size="small"
                                     color="success"
@@ -713,7 +829,12 @@ const Chat = () => {
                                 )}
                               </Box>
                               {downloadingFileId === msg.id ? (
-                                <Box display="flex" alignItems="center" justifyContent="center" p={0.5}>
+                                <Box
+                                  display="flex"
+                                  alignItems="center"
+                                  justifyContent="center"
+                                  p={0.5}
+                                >
                                   <CircularProgress size={20} color="primary" />
                                 </Box>
                               ) : (
@@ -722,9 +843,15 @@ const Chat = () => {
                                   color="primary"
                                   title="Download attachment"
                                   onClick={() =>
-                                    handleFileDownload(msg.id, msg.original_name)
+                                    handleFileDownload(
+                                      msg.id,
+                                      msg.original_name,
+                                    )
                                   }
-                                  sx={{ bgcolor: "action.hover", "&:hover": { bgcolor: "action.selected" } }}
+                                  sx={{
+                                    bgcolor: "action.hover",
+                                    "&:hover": { bgcolor: "action.selected" },
+                                  }}
                                 >
                                   <DownloadIcon fontSize="small" />
                                 </IconButton>
@@ -732,7 +859,12 @@ const Chat = () => {
                             </Box>
                           </Box>
                           {msg.caption && (
-                            <Box mt={0.5} pt={1} borderTop="1px solid" borderColor="divider">
+                            <Box
+                              mt={0.5}
+                              pt={1}
+                              borderTop="1px solid"
+                              borderColor="divider"
+                            >
                               <FormattedMessage content={msg.caption} />
                             </Box>
                           )}
@@ -776,7 +908,9 @@ const Chat = () => {
               onFileSelect={handleFileSelect}
               isUploading={isUploadingFile}
               onTyping={handleTypingStatus}
-              onSync={() => activeConversationId && fetchMessages(activeConversationId)}
+              onSync={() =>
+                activeConversationId && fetchMessages(activeConversationId)
+              }
             />
           </>
         ) : (
@@ -788,19 +922,14 @@ const Chat = () => {
             flex={1}
             bgcolor="background.paper"
           >
-            <img
-              src="/cw.jpeg"
-              alt="Simple Chat"
-              style={{
-                maxWidth: "400px",
-                width: "100%",
-                height: "auto",
-                borderRadius: "16px",
-                marginBottom: "24px",
-              }}
+            <NavbarLogo
+              src="/logo.png"
+              height={256}
+              onClick={() => (globalThis.location.href = "/")}
             />
+
             <Typography variant="h5" color="text.primary">
-              Welcome to Simple Chat
+              Welcome to Conversation
             </Typography>
             <Typography color="text.secondary" mt={1}>
               Select a user from the sidebar to start chatting

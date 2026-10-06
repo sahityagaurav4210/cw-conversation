@@ -1,14 +1,98 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const { Op } = require('sequelize');
-const { User, Conversation, sequelize } = require('../models');
+const { User, Conversation, EmailClientMaster, sequelize } = require('../models');
 
 const router = express.Router();
 
+const memoryUpload = multer({
+    limits: { fileSize: 2 * 1024 * 1024 } // 2 MB limit
+});
+
+const validateImageMagicBytes = (buffer) => {
+    if (!buffer || buffer.length < 4) return false;
+    // JPEG magic bytes: FF D8 FF
+    const isJpeg = buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF;
+    // PNG magic bytes: 89 50 4E 47
+    const isPng = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47;
+    return isJpeg || isPng;
+};
+
+const validateCaptcha = async (captcha, captchaId) => {
+    if (!captcha || !captchaId) {
+        return { valid: false, message: 'CAPTCHA code and CAPTCHA ID are required.' };
+    }
+    try {
+        const CAPTCHA_SERVICE_URL = process.env.CAPTCHA_SERVICE_URL || 'http://localhost:11905';
+        const response = await axios.post(`${CAPTCHA_SERVICE_URL}/api/v1/captcha/validate`, {
+            captcha: String(captcha).trim(),
+            captchaId: String(captchaId).trim()
+        });
+
+        if (response.data && (response.data.status === 'success' || response.status === 200)) {
+            return { valid: true };
+        }
+        return { valid: false, message: response.data?.details?.message || 'CAPTCHA validation failed.' };
+    } catch (error) {
+        console.error('CAPTCHA Service error:', error.response?.data || error.message);
+        const msg = error.response?.data?.details?.message || error.response?.data?.message || 'Invalid or expired CAPTCHA.';
+        return { valid: false, message: msg };
+    }
+};
+
+router.get('/captcha/generate', async (req, res) => {
+    try {
+        const CAPTCHA_SERVICE_URL = process.env.CAPTCHA_SERVICE_URL || 'http://localhost:11905';
+        const response = await axios.get(`${CAPTCHA_SERVICE_URL}/api/v1/captcha/generate`);
+        res.json(response.data);
+    } catch (err) {
+        console.error("Captcha generation error:", err.message);
+        res.status(500).json({ error: "Failed to generate CAPTCHA" });
+    }
+});
+
+router.get('/captcha/image/:captchaId', async (req, res) => {
+    try {
+        const CAPTCHA_SERVICE_URL = process.env.CAPTCHA_SERVICE_URL || 'http://localhost:11905';
+        const response = await axios.get(`${CAPTCHA_SERVICE_URL}/api/v1/captcha/image/${req.params.captchaId}`, {
+            responseType: 'stream'
+        });
+        res.setHeader('Content-Type', response.headers['content-type'] || 'image/png');
+        response.data.pipe(res);
+    } catch (err) {
+        console.error("Captcha image proxy error:", err.message);
+        res.status(500).json({ error: "Failed to fetch CAPTCHA image" });
+    }
+});
+
+router.get('/captcha/audio/:captchaId', async (req, res) => {
+    try {
+        const CAPTCHA_SERVICE_URL = process.env.CAPTCHA_SERVICE_URL || 'http://localhost:11905';
+        const response = await axios.get(`${CAPTCHA_SERVICE_URL}/api/v1/captcha/audio/${req.params.captchaId}`, {
+            responseType: 'stream'
+        });
+        res.setHeader('Content-Type', response.headers['content-type'] || 'audio/mpeg');
+        response.data.pipe(res);
+    } catch (err) {
+        console.error("Captcha audio proxy error:", err.message);
+        res.status(500).json({ error: "Failed to fetch CAPTCHA audio" });
+    }
+});
+
 router.post('/register', async (req, res) => {
     try {
-        const { username, password, name } = req.body;
+        const { username, password, name, captcha, captchaId } = req.body;
+
+        const captchaCheck = await validateCaptcha(captcha, captchaId);
+        if (!captchaCheck.valid) {
+            return res.status(400).json({ error: captchaCheck.message });
+        }
+
         if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
 
         const usernameRegex = /^[a-zA-Z0-9_]+$/;
@@ -44,7 +128,13 @@ router.post('/register', async (req, res) => {
 
 router.post('/login', async (req, res) => {
     try {
-        const { username, password, isAdminLogin } = req.body;
+        const { username, password, isAdminLogin, captcha, captchaId } = req.body;
+
+        const captchaCheck = await validateCaptcha(captcha, captchaId);
+        if (!captchaCheck.valid) {
+            return res.status(400).json({ error: captchaCheck.message });
+        }
+
         const maxWrongPwdLimit = parseInt(process.env.MAX_WRONG_PWD_LIMIT || process.env.max_wrong_pwd_limit || '5', 10);
 
         const user = await User.findOne({ where: { username } });
@@ -105,8 +195,17 @@ router.post('/login', async (req, res) => {
         await user.save();
 
         const jwtExpiresIn = process.env.JWT_EXPIRES_IN || '15m';
-        const token = jwt.sign({ id: user.id, username: user.username, name: user.name, role: user.role || 'user' }, process.env.JWT_SECRET, { expiresIn: jwtExpiresIn });
-        res.json({ token, user: { id: user.id, username: user.username, name: user.name, role: user.role || 'user' } });
+        const userObj = {
+            id: user.id,
+            username: user.username,
+            name: user.name,
+            email: user.email,
+            profile_photo: user.profile_photo,
+            sex: user.sex,
+            role: user.role || 'user'
+        };
+        const token = jwt.sign(userObj, process.env.JWT_SECRET, { expiresIn: jwtExpiresIn });
+        res.json({ token, user: userObj });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error' });
@@ -160,7 +259,7 @@ router.get('/users', authMiddleware, async (req, res) => {
         }
 
         const users = await User.findAll({ 
-            attributes: ['id', 'username', 'name'],
+            attributes: ['id', 'username', 'name', 'email', 'profile_photo', 'sex'],
             where: whereClause,
             order: orderClause,
             limit: 15
@@ -173,9 +272,15 @@ router.get('/users', authMiddleware, async (req, res) => {
     }
 });
 
-router.put('/profile', authMiddleware, async (req, res) => {
+router.put('/profile', authMiddleware, memoryUpload.single('profile_photo'), async (req, res) => {
     try {
-        const { name, password } = req.body;
+        const { name, password, email, sex, captcha, captchaId, remove_photo } = req.body;
+
+        const captchaCheck = await validateCaptcha(captcha, captchaId);
+        if (!captchaCheck.valid) {
+            return res.status(400).json({ error: captchaCheck.message });
+        }
+
         const user = await User.findByPk(req.user.id);
         if (!user) return res.status(404).json({ error: 'User not found' });
 
@@ -184,6 +289,54 @@ router.put('/profile', authMiddleware, async (req, res) => {
             if (name.length > 0 && !/^[a-zA-Z0-9 ]+$/.test(name)) return res.status(400).json({ error: 'Name can only contain letters, numbers, and spaces.' });
             user.name = name;
         }
+
+        if (email !== undefined && email !== null && email.trim() !== '') {
+            const cleanEmail = email.trim();
+            const emailParts = cleanEmail.split('@');
+            if (emailParts.length !== 2 || !emailParts[0] || !emailParts[1]) {
+                return res.status(400).json({ error: 'Invalid email address format.' });
+            }
+            const domain = emailParts[1].toLowerCase();
+            const activeDomain = await EmailClientMaster.findOne({ where: { domain, is_active: true } });
+            if (!activeDomain) {
+                return res.status(400).json({ error: `Email client domain @${domain} is not an allowed active domain.` });
+            }
+            user.email = cleanEmail;
+        } else if (email === '') {
+            user.email = null;
+        }
+
+        if (sex !== undefined && sex !== null && sex.trim() !== '') {
+            const validSexes = ['male', 'female', 'tgp'];
+            if (!validSexes.includes(sex)) {
+                return res.status(400).json({ error: 'Sex must be one of: male, female, tgp.' });
+            }
+            user.sex = sex;
+        }
+
+        if (remove_photo === 'true' || remove_photo === true) {
+            user.profile_photo = null;
+        }
+
+        if (req.file) {
+            if (req.file.size > 2 * 1024 * 1024) {
+                return res.status(400).json({ error: 'Profile photo size exceeds limit of 2MB.' });
+            }
+            if (!validateImageMagicBytes(req.file.buffer)) {
+                return res.status(400).json({ error: 'Security validation failed: File content does not match allowed JPEG or PNG image format (magic bytes check failed).' });
+            }
+            const isJpeg = req.file.buffer[0] === 0xFF && req.file.buffer[1] === 0xD8;
+            const ext = isJpeg ? '.jpg' : '.png';
+            const filename = `photo_${user.id}_${Date.now()}${ext}`;
+            const targetDir = path.join(__dirname, '../uploads/profiles');
+            if (!fs.existsSync(targetDir)) {
+                fs.mkdirSync(targetDir, { recursive: true });
+            }
+            const targetPath = path.join(targetDir, filename);
+            fs.writeFileSync(targetPath, req.file.buffer);
+            user.profile_photo = `/uploads/profiles/${filename}`;
+        }
+
         if (password) {
             if (password.length < 5 || password.length > 20) return res.status(400).json({ error: 'Password must be between 5 and 20 characters.' });
             const salt = await bcrypt.genSalt(10);
@@ -192,11 +345,20 @@ router.put('/profile', authMiddleware, async (req, res) => {
         await user.save();
 
         const jwtExpiresIn = process.env.JWT_EXPIRES_IN || '15m';
-        const token = jwt.sign({ id: user.id, username: user.username, name: user.name, role: user.role || 'user' }, process.env.JWT_SECRET, { expiresIn: jwtExpiresIn });
-        res.json({ token, user: { id: user.id, username: user.username, name: user.name, role: user.role || 'user' } });
+        const userPayload = {
+            id: user.id,
+            username: user.username,
+            name: user.name,
+            email: user.email,
+            profile_photo: user.profile_photo,
+            sex: user.sex,
+            role: user.role || 'user'
+        };
+        const token = jwt.sign(userPayload, process.env.JWT_SECRET, { expiresIn: jwtExpiresIn });
+        res.json({ token, user: userPayload });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: err.message || 'Server error' });
     }
 });
 
@@ -220,15 +382,24 @@ router.post('/refresh', (req, res) => {
             }
 
             const jwtExpiresIn = process.env.JWT_EXPIRES_IN || '15m';
+            const userPayload = {
+                id: user.id,
+                username: user.username,
+                name: user.name,
+                email: user.email,
+                profile_photo: user.profile_photo,
+                sex: user.sex,
+                role: user.role || 'user'
+            };
             const newToken = jwt.sign(
-                { id: user.id, username: user.username, name: user.name, role: user.role || 'user' },
+                userPayload,
                 process.env.JWT_SECRET,
                 { expiresIn: jwtExpiresIn }
             );
 
             res.json({
                 token: newToken,
-                user: { id: user.id, username: user.username, name: user.name, role: user.role || 'user' }
+                user: userPayload
             });
         } catch (error) {
             console.error('Refresh token error:', error);
@@ -428,6 +599,86 @@ router.post('/forgot-password/verify', async (req, res) => {
         console.error(err);
         res.status(500).json({ error: 'Server error' });
     }
+});
+
+// ==================== EMAIL CLIENT MASTER ENDPOINTS ====================
+
+// Get active email clients for user profile autocomplete dropdown
+router.get("/email-clients", authMiddleware, async (req, res) => {
+  try {
+    const clients = await EmailClientMaster.findAll({
+      where: { is_active: true },
+      order: [["domain", "ASC"]],
+    });
+    res.json(clients);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch email clients" });
+  }
+});
+
+// Admin: Get all email clients for Admin Panel Table
+router.get("/admin/email-clients", adminMiddleware, async (req, res) => {
+  try {
+    const clients = await EmailClientMaster.findAll({
+      order: [["created_at", "DESC"]],
+    });
+    res.json(clients);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch email clients" });
+  }
+});
+
+// Admin: Add new email client domain
+router.post("/admin/email-clients", adminMiddleware, async (req, res) => {
+  try {
+    const { domain } = req.body;
+    if (!domain || !domain.trim()) {
+      return res.status(400).json({ error: "Domain name is required." });
+    }
+    let cleanDomain = domain.trim().toLowerCase();
+    if (cleanDomain.startsWith("@")) {
+      cleanDomain = cleanDomain.substring(1);
+    }
+    const domainRegex = /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!domainRegex.test(cleanDomain)) {
+      return res.status(400).json({
+        error: "Invalid email client domain format (e.g. gmail.com or company.com).",
+      });
+    }
+
+    const existing = await EmailClientMaster.findOne({
+      where: { domain: cleanDomain },
+    });
+    if (existing) {
+      return res.status(400).json({ error: "Email client domain already exists." });
+    }
+
+    const newClient = await EmailClientMaster.create({
+      domain: cleanDomain,
+      is_active: true,
+    });
+    res.status(201).json(newClient);
+  } catch (err) {
+    console.error("Error creating email client:", err);
+    res.status(500).json({ error: "Failed to add email client domain" });
+  }
+});
+
+// Admin: Toggle email client active status
+router.put("/admin/email-clients/:id/status", adminMiddleware, async (req, res) => {
+  try {
+    const client = await EmailClientMaster.findByPk(req.params.id);
+    if (!client) return res.status(404).json({ error: "Email client not found." });
+
+    client.is_active = !client.is_active;
+    await client.save();
+    res.json({ message: "Email client status updated successfully.", client });
+  } catch (err) {
+    console.error("Error updating email client status:", err);
+    res.status(500).json({ error: "Failed to update email client status" });
+  }
 });
 
 module.exports = router;
