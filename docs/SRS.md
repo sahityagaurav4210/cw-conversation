@@ -73,7 +73,7 @@ The system follows a multi-tier client-server architecture:
 - **CAPTCHA Microservice**: External microservice running at `http://localhost:11905` providing CAPTCHA image/audio generation and validation.
 
 ### 2.2 Product Functions
-- **Authentication & Authorization**: Registration, login, admin login, password reset request, CAPTCHA verification (Image & Audio), and account lockouts.
+- **Authentication & Authorization**: Registration, unified login, password reset request, CAPTCHA verification (Image & Audio), and account lockouts.
 - **Encrypted 1-on-1 Chat**: End-to-end encrypted messaging using AES algorithms per conversation.
 - **File Transfers**: Upload, encrypt, store, decrypt, and download attachment files up to 350 MB.
 - **Presence & Activity**: Live online/offline user presence tracking, typing notifications, and message read receipts.

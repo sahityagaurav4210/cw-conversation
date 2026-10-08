@@ -13,7 +13,6 @@ import {
   Stack,
   CircularProgress,
   Tooltip,
-  Link,
 } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -22,20 +21,22 @@ import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import SecurityIcon from "@mui/icons-material/Security";
 import AlternateEmailIcon from "@mui/icons-material/AlternateEmail";
 import PasswordIcon from "@mui/icons-material/Password";
+import BadgeIcon from "@mui/icons-material/Badge";
 import NavbarLogo from "./NavbarLogo";
+import OptionCard from "./OptionCard";
 import axios from "axios";
 import LoginIcon from "@mui/icons-material/Login";
-import Registration from "./Registration";
 
-const Login = ({ onForgotPasswordClick }) => {
-  const { login } = useContext(AuthContext);
+const Registration = ({ onGoToLogin }) => {
+  const { register } = useContext(AuthContext);
   const { showAlert } = useUI();
-  const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // CAPTCHA State
   const [captchaId, setCaptchaId] = useState("");
@@ -108,7 +109,7 @@ const Login = ({ onForgotPasswordClick }) => {
 
   useEffect(() => {
     fetchCaptcha();
-  }, [isLogin]);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -121,10 +122,51 @@ const Login = ({ onForgotPasswordClick }) => {
       return;
     }
 
+    if (!agreedToTerms) {
+      const errorMsg = "You must agree to the Terms and Conditions and Privacy Policy to register.";
+      setError(errorMsg);
+      showAlert(errorMsg, "error");
+      return;
+    }
+
+    if (username.length > 32) {
+      const errorMsg = "Username cannot exceed 32 characters.";
+      setError(errorMsg);
+      showAlert(errorMsg, "error");
+      return;
+    }
+    const usernameRegex = /^[a-zA-Z0-9_]+$/;
+    if (!usernameRegex.test(username)) {
+      const errorMsg = "Username can only contain letters, numbers, and underscores.";
+      setError(errorMsg);
+      showAlert(errorMsg, "error");
+      return;
+    }
+
+    if (name) {
+      if (name.length > 32) {
+        setError("Name cannot exceed 32 characters.");
+        showAlert("Name cannot exceed 32 characters.", "error");
+        return;
+      }
+      if (!/^[a-zA-Z0-9 ]+$/.test(name)) {
+        setError("Name can only contain letters, numbers, and spaces.");
+        showAlert("Name can only contain letters, numbers, and spaces.", "error");
+        return;
+      }
+    }
+
+    if (password.length < 5 || password.length > 20) {
+      setError("Password must be between 5 and 20 characters.");
+      showAlert("Password must be between 5 and 20 characters.", "error");
+      return;
+    }
+
     setLoading(true);
     try {
-      await login(username, password, false, captchaInput, captchaId);
-      showAlert("Login successful!", "success");
+      await register(username, password, name, captchaInput, captchaId);
+      showAlert("Registration successful. Please login.", "success");
+      onGoToLogin();
     } catch (err) {
       const errorMsg = err.response?.data?.error || "An error occurred";
       setError(errorMsg);
@@ -134,10 +176,6 @@ const Login = ({ onForgotPasswordClick }) => {
       setLoading(false);
     }
   };
-
-  if (!isLogin) {
-    return <Registration onGoToLogin={() => setIsLogin(true)} />;
-  }
 
   return (
     <Box
@@ -174,6 +212,10 @@ const Login = ({ onForgotPasswordClick }) => {
 
         <Divider sx={{ mb: 2 }} />
 
+        <Typography variant="h5" gutterBottom color="primary">
+          Register for Conversation
+        </Typography>
+
         {error && <Typography color="error">{error}</Typography>}
 
         <form onSubmit={handleSubmit}>
@@ -184,10 +226,27 @@ const Login = ({ onForgotPasswordClick }) => {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
+            helperText="Max 32 chars, letters, numbers, and underscores only."
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
                   <AlternateEmailIcon fontSize="small" />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <TextField
+            fullWidth
+            margin="normal"
+            label="Name (Optional)"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            helperText="Max 32 chars, letters, numbers, and spaces only."
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <BadgeIcon fontSize="small" />
                 </InputAdornment>
               ),
             }}
@@ -201,6 +260,7 @@ const Login = ({ onForgotPasswordClick }) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            helperText="Must be between 5 and 20 characters."
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -330,27 +390,21 @@ const Login = ({ onForgotPasswordClick }) => {
             />
           </Box>
 
-          <Stack
-            direction="column"
-            alignItems="flex-end"
-            sx={{ fontSize: "12px" }}
-            spacing={1}
-          >
-            <Link onClick={onForgotPasswordClick} sx={{ cursor: "pointer" }}>
-              Forgot Password?
-            </Link>
-
-            <Link onClick={() => setIsLogin(false)} sx={{ cursor: "pointer" }}>
-              Don't have an account? Register
-            </Link>
-          </Stack>
+          <Box display="flex" justifyContent="flex-start" my={2}>
+            <OptionCard
+              checked={agreedToTerms}
+              onClick={() => setAgreedToTerms(!agreedToTerms)}
+              label="By clicking on register button given below, I agree to app's Terms and Conditions and Privacy Policy"
+              sx={{ width: "100%", textAlign: "left" }}
+            />
+          </Box>
 
           <Box display="flex" justifyContent="flex-start" my={1}>
             <Button
               type="submit"
               variant="contained"
               color="primary"
-              disabled={loading || loadingCaptcha}
+              disabled={loading || loadingCaptcha || !agreedToTerms}
               startIcon={
                 loading ? (
                   <CircularProgress size={16} color="secondary" />
@@ -358,15 +412,34 @@ const Login = ({ onForgotPasswordClick }) => {
                   <LoginIcon fontSize="small" />
                 )
               }
-              size="small"
+              sx={{ width: "max-content", p: 2, justifyContent: "flex-start" }}
             >
-              {loading ? "Logging in..." : "Login"}
+              {loading ? "Registering..." : "Register"}
             </Button>
           </Box>
         </form>
+
+        <Divider sx={{ my: 1 }}>
+          <Typography variant="h6" color="secondary">
+            OR
+          </Typography>
+        </Divider>
+
+        <Box display="flex" justifyContent="center">
+          <Button
+            color="secondary"
+            onClick={onGoToLogin}
+            sx={{
+              p: 2,
+            }}
+            fullWidth
+          >
+            Already have an account? Login
+          </Button>
+        </Box>
       </Paper>
     </Box>
   );
 };
 
-export default Login;
+export default Registration;

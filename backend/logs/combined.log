@@ -2,3 +2,93 @@
 {"level":"info","message":"Server running on port 5000 (0.0.0.0)","timestamp":"2026-10-06 17:35:50"}
 {"durationMs":137,"ip":"10.10.149.3","level":"info","message":"HTTP POST /api/auth/refresh 200 - 137ms","method":"POST","status":200,"timestamp":"2026-10-06 17:38:31","url":"/api/auth/refresh"}
 {"level":"info","message":"User connected via socket: sgaurav (Socket ID: MnsVwz9rRUTQtGqnAAAA)","timestamp":"2026-10-06 17:38:31"}
+{"durationMs":24,"ip":"10.10.149.2","level":"info","message":"HTTP POST /api/auth/login 400 - 24ms","method":"POST","status":400,"timestamp":"2026-10-07 10:19:45","url":"/api/auth/login"}
+{"durationMs":776,"ip":"10.10.149.2","level":"info","message":"HTTP POST /api/auth/login 200 - 776ms","method":"POST","status":200,"timestamp":"2026-10-07 10:19:54","url":"/api/auth/login"}
+{"durationMs":7,"ip":"10.10.149.2","level":"info","message":"HTTP GET /api/auth/users?search= 200 - 7ms","method":"GET","status":200,"timestamp":"2026-10-07 10:19:54","url":"/api/auth/users?search="}
+{"durationMs":4,"ip":"10.10.149.2","level":"info","message":"HTTP GET /api/auth/users?search= 304 - 4ms","method":"GET","status":304,"timestamp":"2026-10-07 10:19:54","url":"/api/auth/users?search="}
+{"level":"info","message":"User connected via socket: manish (Socket ID: IgY51gvdZojvS_zFAAAB)","timestamp":"2026-10-07 10:19:55"}
+{"durationMs":131,"ip":"10.10.149.2","level":"info","message":"HTTP POST /api/auth/refresh 200 - 131ms","method":"POST","status":200,"timestamp":"2026-10-07 10:34:37","url":"/api/auth/refresh"}
+{"level":"info","message":"User connected via socket: manish (Socket ID: F1UMSDfB3FesQSttAAAC)","timestamp":"2026-10-07 10:34:37"}
+{"durationMs":318,"ip":"10.10.149.3","level":"info","message":"HTTP POST /api/auth/login 200 - 318ms","method":"POST","status":200,"timestamp":"2026-10-07 11:12:17","url":"/api/auth/login"}
+{"level":"info","message":"User connected via socket: sgaurav (Socket ID: iWsmYcWUrlB_HKj2AAAD)","timestamp":"2026-10-07 11:12:17"}
+{"durationMs":14,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/auth/users?search= 200 - 14ms","method":"GET","status":200,"timestamp":"2026-10-07 11:12:17","url":"/api/auth/users?search="}
+{"durationMs":17,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/auth/users?search= 304 - 17ms","method":"GET","status":304,"timestamp":"2026-10-07 11:12:17","url":"/api/auth/users?search="}
+{"durationMs":11,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/chat/messages/1 200 - 11ms","method":"GET","status":200,"timestamp":"2026-10-07 11:12:24","url":"/api/chat/messages/1"}
+{"durationMs":36,"ip":"10.10.149.3","level":"info","message":"HTTP GET /uploads/profiles/photo_1_1791275734970.jpg 200 - 36ms","method":"GET","status":200,"timestamp":"2026-10-07 11:12:31","url":"/uploads/profiles/photo_1_1791275734970.jpg"}
+{"durationMs":149,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/auth/email-clients 200 - 149ms","method":"GET","status":200,"timestamp":"2026-10-07 11:12:31","url":"/api/auth/email-clients"}
+{"durationMs":20,"ip":"10.10.149.2","level":"info","message":"HTTP POST /api/auth/login 400 - 20ms","method":"POST","status":400,"timestamp":"2026-10-07 11:16:01","url":"/api/auth/login"}
+{"durationMs":54,"ip":"10.10.149.2","level":"info","message":"HTTP POST /api/auth/login 400 - 54ms","method":"POST","status":400,"timestamp":"2026-10-07 11:16:12","url":"/api/auth/login"}
+{"durationMs":253,"ip":"10.10.149.2","level":"info","message":"HTTP POST /api/auth/login 200 - 253ms","method":"POST","status":200,"timestamp":"2026-10-07 11:16:24","url":"/api/auth/login"}
+{"durationMs":11,"ip":"10.10.149.2","level":"info","message":"HTTP GET /api/auth/users?search= 304 - 11ms","method":"GET","status":304,"timestamp":"2026-10-07 11:16:24","url":"/api/auth/users?search="}
+{"durationMs":5,"ip":"10.10.149.2","level":"info","message":"HTTP GET /api/auth/users?search= 304 - 5ms","method":"GET","status":304,"timestamp":"2026-10-07 11:16:24","url":"/api/auth/users?search="}
+{"level":"info","message":"User connected via socket: manish (Socket ID: TBtdxTY7J3bRFchcAAAE)","timestamp":"2026-10-07 11:16:24"}
+{"durationMs":211,"ip":"10.10.149.2","level":"info","message":"HTTP POST /api/auth/refresh 200 - 211ms","method":"POST","status":200,"timestamp":"2026-10-07 11:51:57","url":"/api/auth/refresh"}
+{"level":"info","message":"User connected via socket: manish (Socket ID: VlWC86wemSL6C2jvAAAF)","timestamp":"2026-10-07 11:51:57"}
+{"durationMs":368,"ip":"10.10.149.3","level":"info","message":"HTTP POST /api/auth/login 200 - 368ms","method":"POST","status":200,"timestamp":"2026-10-07 14:39:25","url":"/api/auth/login"}
+{"durationMs":12,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/auth/users?search= 304 - 12ms","method":"GET","status":304,"timestamp":"2026-10-07 14:39:25","url":"/api/auth/users?search="}
+{"level":"info","message":"User connected via socket: sgaurav (Socket ID: fSwYLbYyKw6626ftAAAG)","timestamp":"2026-10-07 14:39:25"}
+{"durationMs":15,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/auth/users?search= 304 - 15ms","method":"GET","status":304,"timestamp":"2026-10-07 14:39:25","url":"/api/auth/users?search="}
+{"durationMs":238,"ip":"10.10.149.3","level":"info","message":"HTTP POST /api/auth/login 200 - 238ms","method":"POST","status":200,"timestamp":"2026-10-07 14:40:13","url":"/api/auth/login"}
+{"durationMs":4,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/auth/admin/users 200 - 4ms","method":"GET","status":200,"timestamp":"2026-10-07 14:40:13","url":"/api/auth/admin/users"}
+{"durationMs":6,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/auth/admin/users 304 - 6ms","method":"GET","status":304,"timestamp":"2026-10-07 14:40:13","url":"/api/auth/admin/users"}
+{"durationMs":285,"ip":"10.10.149.11","level":"info","message":"HTTP POST /api/auth/login 200 - 285ms","method":"POST","status":200,"timestamp":"2026-10-07 15:05:25","url":"/api/auth/login"}
+{"durationMs":5,"ip":"10.10.149.11","level":"info","message":"HTTP GET /api/auth/users?search= 200 - 5ms","method":"GET","status":200,"timestamp":"2026-10-07 15:05:25","url":"/api/auth/users?search="}
+{"level":"info","message":"User connected via socket: sgaurav (Socket ID: x5rZpLCzEogek011AAAH)","timestamp":"2026-10-07 15:05:25"}
+{"durationMs":11,"ip":"10.10.149.11","level":"info","message":"HTTP GET /api/auth/users?search= 304 - 11ms","method":"GET","status":304,"timestamp":"2026-10-07 15:05:25","url":"/api/auth/users?search="}
+{"durationMs":45,"ip":"10.10.149.11","level":"info","message":"HTTP GET /api/chat/messages/1 200 - 45ms","method":"GET","status":200,"timestamp":"2026-10-07 15:05:29","url":"/api/chat/messages/1"}
+{"durationMs":14,"ip":"10.10.149.11","level":"info","message":"HTTP GET /api/chat/messages/6 200 - 14ms","method":"GET","status":200,"timestamp":"2026-10-07 15:05:48","url":"/api/chat/messages/6"}
+{"durationMs":10,"ip":"10.10.149.2","level":"info","message":"HTTP POST /api/auth/login 400 - 10ms","method":"POST","status":400,"timestamp":"2026-10-07 15:06:25","url":"/api/auth/login"}
+{"durationMs":46,"ip":"10.10.149.2","level":"info","message":"HTTP POST /api/auth/login 400 - 46ms","method":"POST","status":400,"timestamp":"2026-10-07 15:06:38","url":"/api/auth/login"}
+{"durationMs":29,"ip":"10.10.149.3","level":"info","message":"HTTP POST /api/auth/login 400 - 29ms","method":"POST","status":400,"timestamp":"2026-10-07 15:06:42","url":"/api/auth/login"}
+{"durationMs":258,"ip":"10.10.149.2","level":"info","message":"HTTP POST /api/auth/login 200 - 258ms","method":"POST","status":200,"timestamp":"2026-10-07 15:06:50","url":"/api/auth/login"}
+{"durationMs":7,"ip":"10.10.149.2","level":"info","message":"HTTP GET /api/auth/users?search= 304 - 7ms","method":"GET","status":304,"timestamp":"2026-10-07 15:06:50","url":"/api/auth/users?search="}
+{"durationMs":4,"ip":"10.10.149.2","level":"info","message":"HTTP GET /api/auth/users?search= 304 - 4ms","method":"GET","status":304,"timestamp":"2026-10-07 15:06:50","url":"/api/auth/users?search="}
+{"level":"info","message":"User connected via socket: manish (Socket ID: Ot_ZJwZWk7RfaFjzAAAI)","timestamp":"2026-10-07 15:06:50"}
+{"durationMs":117,"ip":"10.10.149.3","level":"info","message":"HTTP POST /api/auth/login 200 - 117ms","method":"POST","status":200,"timestamp":"2026-10-07 15:06:55","url":"/api/auth/login"}
+{"durationMs":8,"ip":"10.10.149.2","level":"info","message":"HTTP GET /api/chat/messages/1 200 - 8ms","method":"GET","status":200,"timestamp":"2026-10-07 15:06:55","url":"/api/chat/messages/1"}
+{"durationMs":6,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/auth/users?search= 304 - 6ms","method":"GET","status":304,"timestamp":"2026-10-07 15:06:55","url":"/api/auth/users?search="}
+{"level":"info","message":"User connected via socket: sgaurav (Socket ID: KP1oh1Rg5o5mAwgiAAAJ)","timestamp":"2026-10-07 15:06:55"}
+{"durationMs":7,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/auth/users?search= 304 - 7ms","method":"GET","status":304,"timestamp":"2026-10-07 15:06:55","url":"/api/auth/users?search="}
+{"durationMs":10,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/chat/messages/1 200 - 10ms","method":"GET","status":200,"timestamp":"2026-10-07 15:06:57","url":"/api/chat/messages/1"}
+{"durationMs":8,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/chat/messages/6 200 - 8ms","method":"GET","status":200,"timestamp":"2026-10-07 15:08:59","url":"/api/chat/messages/6"}
+{"durationMs":6,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/chat/messages/1 304 - 6ms","method":"GET","status":304,"timestamp":"2026-10-07 15:09:01","url":"/api/chat/messages/1"}
+{"durationMs":137,"ip":"10.10.149.3","level":"info","message":"HTTP POST /api/auth/refresh 200 - 137ms","method":"POST","status":200,"timestamp":"2026-10-07 15:22:31","url":"/api/auth/refresh"}
+{"level":"info","message":"User connected via socket: sgaurav (Socket ID: UFSKzFheTyL0GPnHAAAK)","timestamp":"2026-10-07 15:22:31"}
+{"durationMs":303,"ip":"10.10.149.2","level":"info","message":"HTTP POST /api/auth/refresh 200 - 303ms","method":"POST","status":200,"timestamp":"2026-10-07 15:47:28","url":"/api/auth/refresh"}
+{"level":"info","message":"User connected via socket: manish (Socket ID: Jbaj3iSo5R8flsZrAAAL)","timestamp":"2026-10-07 15:47:28"}
+{"durationMs":163,"ip":"10.10.149.2","level":"info","message":"HTTP POST /api/auth/refresh 200 - 163ms","method":"POST","status":200,"timestamp":"2026-10-07 16:45:31","url":"/api/auth/refresh"}
+{"level":"info","message":"User connected via socket: manish (Socket ID: 66rWBRZoHYhesC2hAAAM)","timestamp":"2026-10-07 16:45:31"}
+{"durationMs":133,"ip":"10.10.149.2","level":"info","message":"HTTP POST /api/auth/refresh 200 - 133ms","method":"POST","status":200,"timestamp":"2026-10-07 17:01:33","url":"/api/auth/refresh"}
+{"level":"info","message":"User connected via socket: manish (Socket ID: uL6R8rHiqKYCKmTpAAAN)","timestamp":"2026-10-07 17:01:33"}
+{"durationMs":2604,"ip":"10.10.149.3","level":"info","message":"HTTP POST /api/auth/register 201 - 2604ms","method":"POST","status":201,"timestamp":"2026-10-08 10:28:06","url":"/api/auth/register"}
+{"durationMs":68,"ip":"10.10.149.11","level":"info","message":"HTTP POST /api/auth/login 400 - 68ms","method":"POST","status":400,"timestamp":"2026-10-08 10:29:03","url":"/api/auth/login"}
+{"durationMs":281,"ip":"10.10.149.11","level":"info","message":"HTTP POST /api/auth/login 200 - 281ms","method":"POST","status":200,"timestamp":"2026-10-08 10:29:14","url":"/api/auth/login"}
+{"level":"info","message":"User connected via socket: sharlet03 (Socket ID: c-wYkVqsSSTQsXMiAAAO)","timestamp":"2026-10-08 10:29:14"}
+{"durationMs":67,"ip":"10.10.149.11","level":"info","message":"HTTP GET /api/auth/users?search= 200 - 67ms","method":"GET","status":200,"timestamp":"2026-10-08 10:29:14","url":"/api/auth/users?search="}
+{"durationMs":2,"ip":"10.10.149.11","level":"info","message":"HTTP GET /api/auth/users?search= 304 - 2ms","method":"GET","status":304,"timestamp":"2026-10-08 10:29:14","url":"/api/auth/users?search="}
+{"durationMs":53,"ip":"10.10.149.11","level":"info","message":"HTTP GET /api/chat/messages/44 200 - 53ms","method":"GET","status":200,"timestamp":"2026-10-08 10:29:17","url":"/api/chat/messages/44"}
+{"durationMs":188,"ip":"10.10.149.11","level":"info","message":"HTTP GET /api/auth/coding-languages 200 - 188ms","method":"GET","status":200,"timestamp":"2026-10-08 10:29:27","url":"/api/auth/coding-languages"}
+{"durationMs":307,"ip":"10.10.149.3","level":"info","message":"HTTP POST /api/auth/login 200 - 307ms","method":"POST","status":200,"timestamp":"2026-10-08 11:00:22","url":"/api/auth/login"}
+{"durationMs":6,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/auth/users?search= 200 - 6ms","method":"GET","status":200,"timestamp":"2026-10-08 11:00:22","url":"/api/auth/users?search="}
+{"level":"info","message":"User connected via socket: sgaurav (Socket ID: u2HPSswcZ6ZwUytjAAAP)","timestamp":"2026-10-08 11:00:22"}
+{"durationMs":5,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/auth/users?search= 304 - 5ms","method":"GET","status":304,"timestamp":"2026-10-08 11:00:22","url":"/api/auth/users?search="}
+{"durationMs":7,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/chat/messages/45 200 - 7ms","method":"GET","status":200,"timestamp":"2026-10-08 11:00:27","url":"/api/chat/messages/45"}
+{"durationMs":4,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/chat/messages/31 200 - 4ms","method":"GET","status":200,"timestamp":"2026-10-08 11:00:31","url":"/api/chat/messages/31"}
+{"durationMs":2,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/chat/messages/29 200 - 2ms","method":"GET","status":200,"timestamp":"2026-10-08 11:00:34","url":"/api/chat/messages/29"}
+{"durationMs":6,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/chat/messages/1 304 - 6ms","method":"GET","status":304,"timestamp":"2026-10-08 11:00:35","url":"/api/chat/messages/1"}
+{"durationMs":278,"ip":"10.10.149.11","level":"info","message":"HTTP POST /api/auth/refresh 200 - 278ms","method":"POST","status":200,"timestamp":"2026-10-08 11:09:34","url":"/api/auth/refresh"}
+{"level":"info","message":"User connected via socket: sharlet03 (Socket ID: CVM-zp19-0oQRkH_AAAQ)","timestamp":"2026-10-08 11:09:34"}
+{"durationMs":122,"ip":"10.10.149.3","level":"info","message":"HTTP POST /api/auth/refresh 200 - 122ms","method":"POST","status":200,"timestamp":"2026-10-08 11:15:21","url":"/api/auth/refresh"}
+{"level":"info","message":"User connected via socket: sgaurav (Socket ID: hW07-CRIT2ZNmC2PAAAR)","timestamp":"2026-10-08 11:15:21"}
+{"durationMs":22,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/auth/users?search= 401 - 22ms","method":"GET","status":401,"timestamp":"2026-10-08 11:45:19","url":"/api/auth/users?search="}
+{"durationMs":3,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/auth/users?search= 401 - 3ms","method":"GET","status":401,"timestamp":"2026-10-08 11:45:19","url":"/api/auth/users?search="}
+{"durationMs":389,"ip":"10.10.149.3","level":"info","message":"HTTP POST /api/auth/refresh 200 - 389ms","method":"POST","status":200,"timestamp":"2026-10-08 11:45:20","url":"/api/auth/refresh"}
+{"durationMs":342,"ip":"10.10.149.3","level":"info","message":"HTTP POST /api/auth/refresh 200 - 342ms","method":"POST","status":200,"timestamp":"2026-10-08 11:45:20","url":"/api/auth/refresh"}
+{"durationMs":12,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/auth/users?search= 200 - 12ms","method":"GET","status":200,"timestamp":"2026-10-08 11:45:20","url":"/api/auth/users?search="}
+{"level":"info","message":"User connected via socket: sgaurav (Socket ID: JqoDuhasGzd8k_NYAAAT)","timestamp":"2026-10-08 11:45:20"}
+{"durationMs":48,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/auth/users?search= 304 - 48ms","method":"GET","status":304,"timestamp":"2026-10-08 11:45:20","url":"/api/auth/users?search="}
+{"durationMs":8,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/chat/messages/31 304 - 8ms","method":"GET","status":304,"timestamp":"2026-10-08 11:49:28","url":"/api/chat/messages/31"}
+{"durationMs":3,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/chat/messages/16 200 - 3ms","method":"GET","status":200,"timestamp":"2026-10-08 11:49:30","url":"/api/chat/messages/16"}
+{"durationMs":8,"ip":"10.10.149.3","level":"info","message":"HTTP GET /api/chat/messages/1 304 - 8ms","method":"GET","status":304,"timestamp":"2026-10-08 11:49:41","url":"/api/chat/messages/1"}
+{"durationMs":148,"ip":"10.10.149.3","level":"info","message":"HTTP POST /api/auth/refresh 200 - 148ms","method":"POST","status":200,"timestamp":"2026-10-08 12:00:31","url":"/api/auth/refresh"}
+{"level":"info","message":"User connected via socket: sgaurav (Socket ID: vX91OhoLbo7zK5rqAAAU)","timestamp":"2026-10-08 12:00:31"}

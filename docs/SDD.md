@@ -81,7 +81,7 @@ The **Singleton Socket Architecture** ensures that a single user account (`e.g.,
 ## 3. User Interface Design
 
 ### 3.1 Screen Layouts & Component Catalog
-- **Login Component (`Login.jsx`)**: Renders User Login, Admin Login, Signup, Password Visibility toggle, and Adjacent CAPTCHA Box (Image + Audio + Refresh controls).
+- **Login Component (`Login.jsx`)**: Renders Unified Login, Signup, Password Visibility toggle, and Adjacent CAPTCHA Box (Image + Audio + Refresh controls).
 - **Chat Component (`Chat.jsx`)**: Dual-pane interface with Collapsible Sidebar (logo height 64px, user search bar with clear adornment) and Chat Canvas.
 - **UserProfile Component (`UserProfile.jsx`)**: Edit profile dialog for updating display name and password with mandatory CAPTCHA validation.
 - **AdminPanel Component (`AdminPanel.jsx`)**: `material-react-table` interface displaying user rows, lock status chips, action menus, and feedback management tab.

@@ -9,12 +9,21 @@ import AdminPanel from "./components/AdminPanel";
 import ForgotPassword from "./components/ForgotPassword";
 import SessionTimeoutModal from "./components/SessionTimeoutModal";
 import Footer from "./components/Footer";
+import TermsAndConditions from "./components/TermsAndConditions";
+import PrivacyPolicy from "./components/PrivacyPolicy";
 
 const MainApp = () => {
   const { user } = useContext(AuthContext);
   const [showForgotPassword, setShowForgotPassword] = React.useState(false);
+  const [currentView, setCurrentView] = React.useState('main');
 
   const renderContent = () => {
+    if (currentView === 'terms') {
+      return <TermsAndConditions onBack={() => setCurrentView('main')} />;
+    }
+    if (currentView === 'privacy') {
+      return <PrivacyPolicy onBack={() => setCurrentView('main')} />;
+    }
     if (user) {
       return user.role === "admin" ? <AdminPanel /> : <Chat />;
     }
@@ -24,7 +33,7 @@ const MainApp = () => {
     return <Login onForgotPasswordClick={() => setShowForgotPassword(true)} />;
   };
 
-  const isAdmin = user && user.role === "admin";
+  const isAdmin = user && user.role === "admin" && currentView === "main";
 
   if (isAdmin) {
     return (
@@ -32,18 +41,18 @@ const MainApp = () => {
         <Box flex={1} display="flex" flexDirection="column">
           <AdminPanel />
         </Box>
-        <Footer />
+        <Footer onNavigate={(view) => setCurrentView(view)} />
         <SessionTimeoutModal />
       </Box>
     );
   }
 
   return (
-    <Box display="flex" flexDirection="column" height="100vh" sx={{ overflow: "hidden" }}>
-      <Box flex={1} display="flex" flexDirection="column" sx={{ overflow: "hidden" }}>
+    <Box display="flex" flexDirection="column" height="100vh" sx={{ overflow: currentView !== "main" ? "auto" : "hidden" }}>
+      <Box flex={1} display="flex" flexDirection="column" sx={{ overflow: currentView !== "main" ? "auto" : "hidden" }}>
         {renderContent()}
       </Box>
-      <Footer />
+      <Footer onNavigate={(view) => setCurrentView(view)} />
       <SessionTimeoutModal />
     </Box>
   );

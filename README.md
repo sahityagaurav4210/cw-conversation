@@ -9,7 +9,7 @@ This application was developed to facilitate communication among colleagues over
 ### 🔐 Security & Encrypted Messaging
 
 - **End-to-End Encryption**: Messages and attachment captions are encrypted using AES algorithms before database persistence.
-- **CAPTCHA Validation**: Visual and Audio CAPTCHA verification integrated into Login, Registration, Admin Authentication, and Profile Updates.
+- **CAPTCHA Validation**: Visual and Audio CAPTCHA verification integrated into Login, Registration, and Profile Updates.
 - **Account Protection**: Automatic account lockout after consecutive failed login attempts and configurable JWT session timeouts.
 - **Singleton WebSocket Architecture**: Enforces a strict **Singleton Design Pattern** ensuring only **one active WebSocket connection per authenticated user** across client and server.
 - **Magic Byte Image Validation**: Client & server-side magic number inspection (`FF D8 FF` for JPEG, `89 50 4E 47` for PNG) for profile picture uploads up to 2MB, preventing extension spoofing.
